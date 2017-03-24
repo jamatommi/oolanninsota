@@ -1,17 +1,18 @@
-var width = 800, 
+var width = 800,
 height = 600,
 c = document.getElementById("c"),	//canvas
 ctx = c.getContext("2d")			//grafiikat
 c.width = width
 c.height = height
+
 //pelin muuttujat
 var areaWidth = 80,		//koko alue
 areaHeight = 48,
-cellWidth = 10,		// yksi ruutu		
+cellWidth = 10,		// yksi ruutu
 cellHeight = 10,
-mouseX = 0,				
+mouseX = 0,
 mouseY = 0,
-plusY = 120,			
+plusY = 120,
 plusX = cellWidth/2,
 mousexInMap = 0,
 mouseyInMap = 0,
@@ -34,6 +35,57 @@ debug = false,
 S = "",
 maxDistance = 100;
 
+var endScoreSent = false;
+
+//COMMUNINATION FUNCTIONS FOR WEBO =============
+function sendMessage(msg){
+	//send postmessage to parent
+	parent.postMessage(msg, "*");
+}
+function sendScore(){
+	var gameScore = 0.0;
+	//calculate score here
+	for (var i = 0; i < Islands.length; i++){
+		if (Islands[i].country == 0){
+			gameScore += Islands[i].troops;
+		}
+	}
+	sendMessage({
+		messageType: "SCORE",
+		score: gameScore
+	});
+}
+function sendSave(){
+	var state = {
+		turn: turn,
+		selectedIsland: selectedIsland,
+		gameOver: gameOver,
+		Islands: Islands,
+		Map: Map
+	};
+
+	sendMessage({
+		messageType: "SAVE",
+		gameState: state
+	});
+}
+
+function load(state){
+	//loads game given state
+	turn = state.turn;
+	selectedIsland = state.selectedIsland;
+	gameOver = state.gameOver;
+	Islands = state.Islands;
+	Map = state.Map;
+}
+
+sendSave();
+function sendLoadRequest(){
+	sendMessage({messageType: "LOAD_REQUEST"});
+}
+
+
+
 
 //=====FUNKTIOT ja luokat
 var loadimage = function(src){
@@ -42,7 +94,7 @@ var loadimage = function(src){
 	return i
 }
 var random = function(a, b){
-	//r&&om luku väliltä [a,b]
+	//r&&om luku vï¿½liltï¿½ [a,b]
 	return a + Math.floor(Math.random()*(b + 1))
 }
 var drawLine = function(x1, y1, x2, y2){
@@ -58,9 +110,9 @@ function selectButton(x, y, img1, img2){
 	this.img1 = loadimage(img1)	//ei pohjassa
 	this.img2 = loadimage(img2)	//pohjassa
 	this.on = 1
-	
+
 	this.draw = function(){
-		//piirtää buttonin
+		//piirtï¿½ï¿½ buttonin
 		if (this.on == 1){
 			ctx.drawImage(this.img1, this.x, this.y)
 		}
@@ -71,8 +123,8 @@ function selectButton(x, y, img1, img2){
 }
 //kuvien lataus
 bg = loadimage("kuvat/bg.png")
-otsikko = loadimage("kuvat/otsikko.png") 
-finFlag = loadimage("kuvat/fin.png")		
+otsikko = loadimage("kuvat/otsikko.png")
+finFlag = loadimage("kuvat/fin.png")
 finBg = loadimage("kuvat/fin_iso.png")
 finFlag2 = loadimage("kuvat/finflag.png")
 engFlag = loadimage("kuvat/eng.png")
@@ -91,7 +143,7 @@ function Cell(island, x, y){
 	this.y = y
 	this.cellWidth = 32
 	this.cellHeight = 32
-	
+
 	this.isEmpty = function(){
 		return (this.island == 0)
 	}
@@ -119,7 +171,7 @@ var changeTurns = function(firstTime){
 		if (turn == 1)
 			turn = 0
 		else
-			turn = 1	
+			turn = 1
 	}
 	var selectedIsland = 0
 	var newRFFin = reinforcementsFin
@@ -177,7 +229,7 @@ var changeTurns = function(firstTime){
 	}
 }
 var generateField = function(){
-	//tyhjennetään kartta
+	//tyhjennetï¿½ï¿½n kartta
 	Map = []
 	Islands = []
 	for (var y = 0; y < areaHeight; y++){
@@ -207,7 +259,7 @@ var generateField = function(){
 			var country = random(0, 1)
 			var newIsland = new Island(x, y, country, 0)
 			Islands.push(newIsland)
-			
+
 			islandNumber = islandCount
 			var newCell = new Cell(islandCount, x, y)
 			Map[y][x] = newCell
@@ -220,12 +272,12 @@ var generateField = function(){
 			var oldy = 0
 			while (cellsAdded < islandSize){
 				tried += 1
-				direction = random(0, 3) // 0:oikea 1:alas 2:vasemmalle 3:ylös
+				direction = random(0, 3) // 0:oikea 1:alas 2:vasemmalle 3:ylï¿½s
 				if (direction == previousDirection)
 					direction = random(0, 3)
 				if (direction == previousDirection)
 					direction = random(0, 3)
-					
+
 				previousDirection = direction
 				oldx = x
 				oldy = y
@@ -241,16 +293,16 @@ var generateField = function(){
 				newx = x
 				newy = y
 				if ((cellEmpty(newx, newy)) && (
-				(cellIsland(newx, newy - 1) == 0 | cellIsland(newx, newy - 1) == islandNumber) 
+				(cellIsland(newx, newy - 1) == 0 | cellIsland(newx, newy - 1) == islandNumber)
 				&&
 				(cellIsland(newx + 1, newy - 1) == 0 | cellIsland(newx + 1, newy - 1) == islandNumber)
 				&&
 				(cellIsland(newx + 1, newy) == 0 | cellIsland(newx + 1, newy) == islandNumber)
-				&& 
+				&&
 				(cellIsland(newx + 1, newy + 1) == 0 | cellIsland(newx + 1, newy + 1) == islandNumber)
 				&&
 				(cellIsland(newx, newy + 1) == 0 | cellIsland(newx, newy + 1) == islandNumber)
-				&& 
+				&&
 				(cellIsland(newx - 1, newy + 1) == 0 | cellIsland(newx - 1, newy + 1) == islandNumber)
 				&&
 				(cellIsland(newx - 1, newy - 1) == 0 | cellIsland(newx - 1, newy) == islandNumber)
@@ -269,7 +321,7 @@ var generateField = function(){
 					break
 			}
 		}
-		// onko tyhjiä 3x3 alueita jäjellä
+		// onko tyhjiï¿½ 3x3 alueita jï¿½jellï¿½
 		var emptyPlaces = 0
 		for (var y = 0; y < areaHeight; y++){
 			for (var x = 0; x < areaWidth; x++){
@@ -320,7 +372,7 @@ var getDistanceToSelected = function(cell){
 }
 var drawCells = function(){
 	for (var y = 0; y < areaHeight; y++){
-		for (var x = 0; x < areaWidth; x++){	
+		for (var x = 0; x < areaWidth; x++){
 			var cell = Map[y][x];
 			var realX = getRealX(cell)
 			var realY = getRealY(cell)
@@ -364,7 +416,7 @@ var attack = function(start, target){
 				reachable = true;
 		}
 	}
-	
+
 	if (reachable){
 		var startNumber = 0;
 		var targetNumber = 0;
@@ -374,7 +426,7 @@ var attack = function(start, target){
 		}
 		for(i = 0; i < targetIsland.troops; i++){
 			targetNumber += random(1, 6);
-		}		
+		}
 		if (startNumber > targetNumber){
 			//voitto
 			var newStartTroops = 1;
@@ -398,7 +450,7 @@ var attack = function(start, target){
 			var newTargetTroops = targetIsland.troops;
 			startIsland.troops = newStartTroops;
 			targetIsland.troops = newTargetTroops;
-			selectedIsland = 0;	
+			selectedIsland = 0;
 		}
 		return true;
 	}else{
@@ -413,7 +465,7 @@ var ai = function(){
 			changesMade = false;
 			for (i = 1; i < Islands.length; i++){
 				if (Islands[i].country == turn && Islands[i].troops > 1){
-					//tarkistetaan lähellä olevat saaret
+					//tarkistetaan lï¿½hellï¿½ olevat saaret
 					var x = 0
 					var y = 0
 					for (y = 0; y < areaHeight; y++){
@@ -450,14 +502,14 @@ var ai = function(){
 	}
 }
 var start = function(){
-	
+	endScoreSent = false;
 }
 var paint = function(){
 	ctx.drawImage(bg, 0, 0);
 	ctx.drawImage(otsikko, 250, 0);
 	ctx.drawImage(finFlag, 50, 10);
 	ctx.drawImage(engFlag, 100, 10);
-	ctx.fillStyle = "white"; 
+	ctx.fillStyle = "white";
 	ctx.fillText ("" + reinforcementsFin, 50, 45);
 	ctx.fillText ("" + reinforcementsEng, 100, 45);
 	ctx.fillText ("Enter: end turn", 600, 20);
@@ -475,15 +527,15 @@ var paint = function(){
 		drawLine(50 + 50, 10, 85 + 50, 10);
 		drawLine(50 + 50, 10, 50 + 50, 31);
 		drawLine(85 + 50, 10, 85 + 50, 31);
-		drawLine(50 + 50, 31, 85 + 50, 31);		
+		drawLine(50 + 50, 31, 85 + 50, 31);
 	}
 	drawCells()
-	
+
 	reinforcementsFin = 0;
 	reinforcementsEng = 0;
 	var i;
 	for (i = 1; i < Islands.length; i++){
-		//g.drawImage(Islands[i).flag, Islands[i).x * cellWidth - cellWidth/2 + plusX, 
+		//g.drawImage(Islands[i).flag, Islands[i).x * cellWidth - cellWidth/2 + plusX,
 		//Islands[i).y * cellHeight - cellHeight/2 + plusY, this);
 		var troops = Islands[i].troops;
 		var numberX = Islands[i].x * cellWidth + plusX;
@@ -501,10 +553,10 @@ var paint = function(){
 		ctx.closePath()
 		ctx.fill()
 		ctx.fillStyle = "black"
-		ctx.fillText(Islands[i].troops, numberX - cellWidth/2 + 2, numberY + cellHeight/2 - 2); 	
+		ctx.fillText(Islands[i].troops, numberX - cellWidth/2 + 2, numberY + cellHeight/2 - 2);
 		//g.drawString ("" + i, numberX + 10, numberY + 10);
 		//if (selectedIsland == i)
-			//g.drawOval (numberX - 100,numberY - 100,200,200);	
+			//g.drawOval (numberX - 100,numberY - 100,200,200);
 	}
 	ctx.drawImage(rose, 698, 0);
 	//Lopetus
@@ -516,6 +568,10 @@ var paint = function(){
 		ctx.drawImage(finBg, 0, 0);
 	}
 	if (gameOver){
+		if (!endScoreSent){
+			sendScore();	//send score to parent
+			endScoreSent = true;
+		}
 		if (reinforcementsFin == 0)
 			ctx.drawImage(engBg, 0, 0);
 		else if (reinforcementsEng == 0)
@@ -524,7 +580,7 @@ var paint = function(){
 			start()
 		}
 	}
-		
+
 	if (turn == 1 && gameOver == false && AI)
 		ai();
 }
@@ -554,7 +610,7 @@ document.onkeyup = function(e){
 	}
 	if(gameOver == true){
 		startGame();
-	}	
+	}
 }
 document.onmouseup = function(e){
 	mouseX = e.clientX - c.offsetLeft
@@ -597,9 +653,9 @@ var GameLoop = function(){
 	  ctx.fillText(selectedIsland, 10,240)
 	  ctx.fillText(getDistanceToSelected(Map[0][0]), 10,260)
 	  ctx.fillText(getRealX(Map[0][0]) + ", " + getRealY(Map[0][0]), 10,280)
-	  
+
   }
-  
+
   gLoop = setTimeout(GameLoop, 1000 / 50)
 }
 GameLoop();
