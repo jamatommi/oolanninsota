@@ -37,7 +37,30 @@ maxDistance = 100;
 
 var endScoreSent = false;
 
+
 //COMMUNINATION FUNCTIONS FOR WEBO =============
+//RECEIVING MESSAGES:
+$(window).on("message", function(event){
+	var data = event.originalEvent.data;
+	if (data.messageType == "LOAD"){
+		load(data.state);
+	}else if (data.messageType == "ERROR"){
+		console.log("ERROR OCCURED:")
+		console.log(data.info);
+	}
+})
+
+//send setting message:
+var message =  {
+	messageType: "SETTING",
+	options: {
+	        "width": width, //Integer
+					"height": height //Integer
+	}
+};
+sendMessage(message);
+
+//Send messages
 function sendMessage(msg){
 	//send postmessage to parent
 	parent.postMessage(msg, "*");
@@ -512,11 +535,14 @@ var paint = function(){
 	ctx.fillStyle = "white";
 	ctx.fillText ("" + reinforcementsFin, 50, 45);
 	ctx.fillText ("" + reinforcementsEng, 100, 45);
-	ctx.fillText ("Enter: end turn", 600, 20);
+	ctx.fillText("Objective: conquer the enemy's islands. Click an island to select it.", 50, 60);
+	ctx.fillText("Click a hostile island to attack it. You can end your turn by pressing return.", 50, 75);
+	ctx.fillText ("Press return end turn", 550, 20);
 	if (AI)
-		ctx.fillText ("Space bar: two players", 600, 35);
+		ctx.fillText ("Press space bar for two-player mode", 550, 35);
 	else
-		ctx.fillText ("Space bar: single player", 600, 35);
+		ctx.fillText ("Press space bar  for single player mode", 550, 35);
+	ctx.fillText("Press s to save game", 550, 50);
 	ctx.fillstyle = "white"
 	if (turn == 0){
 		drawLine(50, 10, 85, 10);
@@ -593,20 +619,39 @@ var startGame = function(){
 	mouseX = 0
 	mouseY = 0
 	generateField()
+
+	//load test
+	/*var state = {
+		turn: turn,
+		selectedIsland: selectedIsland,
+		gameOver: gameOver,
+		Islands: Islands,
+		Map: Map
+	};
+
+	turn = 0;
+	selectedIsland = 0;
+	gameOver = false;
+	Islands = []
+	Map = undefined;
+
+	load(state);*/
 }
 
 //=====
 //kontrollit
 document.onkeyup = function(e){
-	if (e.keyCode == 13){
+	if (e.keyCode == 13){ //enter
 		if (turn == 0 | AI == false)
 			changeTurns(false);
 	}
-	else if(e.keyCode == 32){
+	else if(e.keyCode == 32){ //space
 		if (AI)
 			AI = false;
 		else
 			AI = true;
+	}else if (e.keyCode == 83){ //s
+		sendSave();
 	}
 	if(gameOver == true){
 		startGame();

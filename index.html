@@ -32,6 +32,22 @@
         var data = event.originalEvent.data;
         console.log(data);
       })
+
+      $("#game").on("load", function(){
+        var newstate = {
+      		turn: 0,
+      		selectedIsland: 0,
+      		gameOver: true,
+      		Islands: [],
+      		Map: undefined
+      	};
+        var message = {
+          messageType: "LOAD",
+          state: newstate
+        };
+        console.log($("#game"));
+        //$("#game")[0].contentWindow.postMessage(message, "*");
+      })
     </script>
   </body>
 </html>
