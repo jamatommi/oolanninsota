@@ -43,7 +43,7 @@ var endScoreSent = false;
 $(window).on("message", function(event){
 	var data = event.originalEvent.data;
 	if (data.messageType == "LOAD"){
-		load(data.state);
+		load(data.gameState);
 	}else if (data.messageType == "ERROR"){
 		console.log("ERROR OCCURED:")
 		console.log(data.info);
