@@ -39,16 +39,16 @@ var endScoreSent = false;
 
 
 //COMMUNINATION FUNCTIONS FOR WEBO =============
-//RECEIVING MESSAGES:
+//RECEIV1ING MESSAGES:
 $(window).on("message", function(event){
 	var data = event.originalEvent.data;
 	if (data.messageType == "LOAD"){
-		load(data.gameState);
+		load(JSON.parse(data.gameState));
 	}else if (data.messageType == "ERROR"){
 		console.log("ERROR OCCURED:")
 		console.log(data.info);
 	}
-})
+});
 
 //send setting message:
 var message =  {
@@ -89,9 +89,11 @@ function sendSave(){
 
 	sendMessage({
 		messageType: "SAVE",
-		gameState: state
+		gameState: JSON.stringify(state)
 	});
 }
+
+
 
 function load(state){
 	//loads game given state
@@ -543,6 +545,8 @@ var paint = function(){
 	else
 		ctx.fillText ("Press space bar  for single player mode", 550, 35);
 	ctx.fillText("Press s to save game", 550, 50);
+	ctx.fillText("Press l to load game", 550, 65);
+
 	ctx.fillstyle = "white"
 	if (turn == 0){
 		drawLine(50, 10, 85, 10);
@@ -652,6 +656,8 @@ document.onkeyup = function(e){
 			AI = true;
 	}else if (e.keyCode == 83){ //s
 		sendSave();
+	}else if (e.keyCode == 76){//l
+		sendLoadRequest();
 	}
 	if(gameOver == true){
 		startGame();
